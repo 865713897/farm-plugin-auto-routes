@@ -20,9 +20,9 @@ type RouteComponentsMap = Record<string, React.ComponentType<any>>;
 
 export default function AppRouter() {
   const {
-    routes,
-    routeComponents,
-  }: { routes: RoutesMap; routeComponents: RouteComponentsMap } = getRoutes();
+    routes = {},
+    routeComponents = {},
+  }: { routes: RoutesMap; routeComponents: RouteComponentsMap } = getRoutes?.() || {};
 
   const renderRoutes = () => {
     return Object.keys(routeComponents).map((key) => {

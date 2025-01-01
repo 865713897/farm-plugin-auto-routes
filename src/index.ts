@@ -1,5 +1,6 @@
 // import { readFileSync } from 'node:fs';
 import path from 'path';
+import fs from 'fs';
 import type { JsPlugin, PluginResolveHookResult } from '@farmfe/core';
 import RouteContext from './routeContext.js';
 
@@ -10,12 +11,9 @@ interface Options {
 const VIRTUAL_PATH = 'src/.farm/virtual_routes.tsx';
 
 export default function farmPlugin(options: Options): JsPlugin {
-  const fileUsedPath = path.join(process.cwd(), 'src/.farm');
-  const absPath = path.join(
-    process.cwd(),
-    'node_modules/.farm/virtual_routes.tsx'
-  );
-  const absVirtualPath = path.join(process.cwd(), VIRTUAL_PATH);
+  const cwd = process.cwd();
+  const fileUsedPath = path.join(cwd, 'src/.farm');
+  const absVirtualPath = path.join(cwd, VIRTUAL_PATH);
   const routeCreator = new RouteContext(fileUsedPath);
 
   return {
@@ -26,7 +24,7 @@ export default function farmPlugin(options: Options): JsPlugin {
     },
     resolve: {
       filters: {
-        sources: ['virtual:routes'],
+        sources: ['virtual:routes', VIRTUAL_PATH],
         importers: [''],
       },
       async executor() {
@@ -44,7 +42,6 @@ export default function farmPlugin(options: Options): JsPlugin {
       },
       async executor() {
         const content = routeCreator.getContent();
-        console.log('load: =======');
         return {
           content,
           moduleType: 'tsx',
@@ -52,24 +49,11 @@ export default function farmPlugin(options: Options): JsPlugin {
         };
       },
     },
-    pluginCacheLoaded: {
-      async executor(bytes) {
-        const str = Buffer.from(bytes).toString();
-        console.log('pluginCacheLoaded:', str);
-        // cachedData = JSON.parse(str);
-      },
-    },
     configureDevServer(server) {
       const fileWatcher = server.watcher.getInternalWatcher();
       fileWatcher.on('all', async (event, filename) => {
         if (event === 'add' || event === 'unlink') {
-          const result = await server.getCompiler().update([absPath]);
-          console.log(result, 'result');
-
-          // 客户端刷新页面
-          server.ws.send({
-            type: 'full-reload',
-          });
+          server.hmrEngine.hmrUpdate(absVirtualPath);
         }
       });
     },
