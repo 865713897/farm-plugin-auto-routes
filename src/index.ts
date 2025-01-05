@@ -27,19 +27,28 @@ import type { dirType } from './interfaces.js';
  *   dirs: [{ dir: 'src/pages', basePath: '' }, { dir: 'src/some/pages', basePath: '/some' }]
  * };
  * ```
+ *
+ * @property {boolean} writeToDisk - Specifies whether to write the generated routes to disk.
  */
 interface Options {
   dirs: string | (string | dirType)[];
+  writeToDisk?: boolean;
 }
 
 const VIRTUAL_PATH = 'virtual_routes.tsx';
 
 export default function farmPlugin(options: Options): JsPlugin {
-  const { dirs, absVirtualPath, output } = resolveOptions(options);
+  const {
+    dirs,
+    absVirtualPath,
+    output,
+    writeToDisk = false,
+  } = resolveOptions(options);
   const routeCreator = new Generate({
     dirs,
     resolvedPath: absVirtualPath,
     output,
+    writeToDisk,
   });
   let updateType: null | 'fileListChange' | 'fileMetaChange' = null;
 

@@ -6,13 +6,13 @@ export default defineConfig({
     input: {
       index: './index.html',
     },
-    persistentCache: false,
+    persistentCache: true,
     progress: false,
   },
   plugins: [
     ['@farmfe/plugin-react', { runtime: 'automatic' }],
     farmPlugin({
-      dirs: ['src/pages', { dir: 'src/feature', basePath: '/feature/' }],
+      dirs: ['src/pages', { dir: 'src/manage', basePath: '/manage' }],
     }),
   ],
 });

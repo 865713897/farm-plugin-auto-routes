@@ -23,7 +23,7 @@ export default defineConfig({
         }
       ]
     },
-    minify: false,
+    minify: true,
     sourcemap: false,
     presetEnv: false,
     persistentCache: {
