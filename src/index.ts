@@ -55,7 +55,6 @@ export default function farmPlugin(options: Options): JsPlugin {
   return {
     name: 'farm-plugin-auto-routes',
     config(config) {
-      console.log('options:', options);
       return config;
     },
     resolve: {

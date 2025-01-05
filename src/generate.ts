@@ -68,7 +68,6 @@ export default class GenerateRoute {
   // 获取文件列表
   async getFileList(dirs: dirType[], useCache: boolean) {
     if (useCache && this.fileListCache) {
-      console.log('use cache');
       return this.fileListCache;
     }
     const fileList: fileListType[] = [];
