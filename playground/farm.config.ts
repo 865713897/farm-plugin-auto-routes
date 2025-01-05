@@ -9,5 +9,10 @@ export default defineConfig({
     persistentCache: false,
     progress: false,
   },
-  plugins: [['@farmfe/plugin-react', { runtime: 'automatic' }], farmPlugin({})],
+  plugins: [
+    ['@farmfe/plugin-react', { runtime: 'automatic' }],
+    farmPlugin({
+      dirs: ['src/pages', { dir: 'src/feature', basePath: '/feature/' }],
+    }),
+  ],
 });

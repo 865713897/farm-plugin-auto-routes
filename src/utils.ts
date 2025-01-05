@@ -1,20 +1,28 @@
-import fs from 'fs';
-import path from 'path';
+// 防抖
+export function debounce<A extends any[], R>(
+  func: (...args: A) => R,
+  wait: number,
+  immediate: boolean = false,
+): (...args: A) => void {
+  let timeout: NodeJS.Timeout | null = null;
 
-export function scanDirectory(dir: string): string[] {
-  let pathList: string[] = [];
-  if (!fs.existsSync(dir)) {
-    return pathList;
-  }
-  const files = fs.readdirSync(dir);
-  files.forEach((file) => {
-    const filePath = path.join(dir, file);
-    if (fs.statSync(filePath).isDirectory()) {
-      pathList = pathList.concat(scanDirectory(filePath));
-    } else {
-      pathList.push(filePath);
+  return function (...args: A) {
+    const later = () => {
+      timeout = null;
+      if (!immediate) {
+        func(...args);
+      }
+    };
+
+    const shouldCallNow = immediate && !timeout;
+    if (timeout) {
+      clearTimeout(timeout);
     }
-  });
 
-  return pathList;
+    timeout = setTimeout(later, wait);
+
+    if (shouldCallNow) {
+      func(...args);
+    }
+  };
 }

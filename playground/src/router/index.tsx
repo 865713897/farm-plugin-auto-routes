@@ -37,7 +37,6 @@ export default function AppRouter() {
           </Route>
         );
       }
-      console.log(path, 'path');
       
       return <Route key={id} path={path} element={<Component />} />;
     });
