@@ -12,13 +12,14 @@
 
 ## 介绍
 
-一个简洁高效的 Farm 插件，用于动态生成路由文件，帮助开发者轻松实现约定式路由功能。
+一个简洁高效的 Farm/Vite 插件，用于动态生成路由文件，帮助开发者轻松实现约定式路由功能。
 
 ---
 
 ## 特性
 
-- 📂 **动态生成**：根据文件目录结构自动生成路由配置
+- 📂 **Vite Plugin**：兼容 `Vite`
+- 📦 **自动生成**：根据文件目录结构自动生成路由文件
 - 🛠️ **路由元信息**：支持通过 `*.meta.json` 文件为每个路由配置附加信息
 - 🤝 **动态路由**：约定以`$`开头的文件为动态路由文件，例如 `$id.tsx`
 - ⚙️ **多页面入口**：支持配置多个页面入口，默认以页面入口下的 `Layout.(jsx|tsx)` 作为局部路由，优先级高于全局路由；例如 `src/pages/Layout.tsx`
@@ -42,7 +43,7 @@ pnpm add farm-plugin-auto-routes --save-dev
 
 ### 配置
 
-在 `farm.config.ts` 中配置
+在 `farm.config.ts` 或 `vite.config.ts` 中配置
 
 ```javascript
 import farmPluginAutoRoutes from 'farm-plugin-auto-routes';
