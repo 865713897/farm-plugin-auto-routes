@@ -1,5 +1,3 @@
-import path from 'path';
-import fs from 'fs';
 import { generateRouterTemplate } from './routeTemplate.js';
 import { scanDirectory, parseRoutes } from './fileUtils.js';
 import CacheManage from './cacheManage.js';
@@ -15,13 +13,11 @@ export interface GenerateRouteOptions {
   dirs: dirType[];
   resolvedPath: string; // 文件使用路径
   output: string; // 文件写入路径
-  writeToDisk?: boolean; // 是否写入磁盘
   ignoredNames?: string[]; // 忽略的文件名
 }
 
 export default class GenerateRoute {
   private resolvedPath: string;
-  private writeToDisk: boolean;
   private output: string;
   private fileListCache: fileListType[] | null = null;
   private ignoredRegex: RegExp = null;
@@ -29,14 +25,13 @@ export default class GenerateRoute {
   private dirs: dirType[];
 
   constructor(opts: GenerateRouteOptions) {
-    const { ignoredNames = [], resolvedPath, output, dirs, writeToDisk } = opts;
+    const { ignoredNames = [], resolvedPath, output, dirs } = opts;
     this.resolvedPath = resolvedPath;
     this.output = output;
     this.ignoredRegex = new RegExp(
       `${[...DEFAULT_IGNORED_NAMES, ...ignoredNames].join('|')}`
     );
     this.dirs = dirs;
-    this.writeToDisk = writeToDisk;
   }
 
   // 生成文件内容
@@ -55,12 +50,6 @@ export default class GenerateRoute {
     );
 
     const content = generateRouterTemplate(routes, routeComponents);
-
-    if (this.writeToDisk) {
-      try {
-        fs.writeFileSync(this.output, content);
-      } catch {}
-    }
 
     return content;
   }

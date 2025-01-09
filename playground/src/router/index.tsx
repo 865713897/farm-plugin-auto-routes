@@ -46,7 +46,7 @@ export default function AppRouter() {
     <Router>
       <Routes>
         {renderRoutes()}
-        <Route path='*' element={<Navigate to='/home' />} />
+        <Route path='*' element={<Navigate to='/' />} />
       </Routes>
     </Router>
   );

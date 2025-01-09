@@ -1,9 +1,17 @@
-// import { readFileSync } from 'node:fs';
+import fs from 'fs';
 import { join, isAbsolute } from 'path';
-import type { JsPlugin } from '@farmfe/core';
+
 import Generate from './generate.js';
-import { debounce } from './utils.js';
-import type { dirType } from './interfaces.js';
+import { debounce, tryPaths } from './utils.js';
+import {
+  VIRTUAL_NAME,
+  VITE_VIRTUAL_NAME,
+  VITE_VIRTUAL_WRITE_NAME,
+  VIRTUAL_ID,
+} from './constant.js';
+
+import type { JsPlugin } from '@farmfe/core';
+import type { dirType, UploadType } from './interfaces.js';
 
 /**
  * Interface representing the options for the auto-routes plugin.
@@ -31,16 +39,15 @@ import type { dirType } from './interfaces.js';
  * @property {boolean} writeToDisk - Specifies whether to write the generated routes to disk.
  */
 interface Options {
-  dirs: string | (string | dirType)[];
+  dirs?: string | (string | dirType)[];
   writeToDisk?: boolean;
 }
 
-const VIRTUAL_PATH = 'virtual_routes.tsx';
-
-export default function farmPlugin(options: Options): JsPlugin {
+export default function farmPlugin(options: Options = {}): JsPlugin {
   const {
     dirs,
     absVirtualPath,
+    isVitePlugin,
     output,
     writeToDisk = false,
   } = resolveOptions(options);
@@ -48,9 +55,54 @@ export default function farmPlugin(options: Options): JsPlugin {
     dirs,
     resolvedPath: absVirtualPath,
     output,
-    writeToDisk,
   });
-  let updateType: null | 'fileListChange' | 'fileMetaChange' = null;
+  let updateType: UploadType = null;
+
+  if (isVitePlugin) {
+    return {
+      name: 'farm-plugin-auto-routes',
+      // @ts-ignore
+      resolveId(id) {
+        if (id === VIRTUAL_ID) {
+          return VITE_VIRTUAL_NAME;
+        }
+      },
+      // @ts-ignore
+      async load(id) {
+        if (id === VITE_VIRTUAL_NAME) {
+          const content = await handleRouteUpdate(
+            routeCreator,
+            updateType,
+            output,
+            writeToDisk
+          );
+          updateType = null;
+          return content;
+        }
+      },
+      // @ts-ignore
+      configureServer(server) {
+        server.watcher.on(
+          'all',
+          debounce(async (event, filename) => {
+            if (routeCreator.isWatchFile(filename)) {
+              if (event === 'add' || event === 'unlink') {
+                updateType = 'fileListChange';
+              }
+            } else if (routeCreator.isMetaFile(filename)) {
+              if (event === 'change' || event === 'unlink') {
+                updateType = 'fileMetaChange';
+                routeCreator.clearMetaCache(filename);
+              }
+            }
+            if (updateType) {
+              updateViteFile(server);
+            }
+          }, 300)
+        );
+      },
+    };
+  }
 
   return {
     name: 'farm-plugin-auto-routes',
@@ -59,7 +111,7 @@ export default function farmPlugin(options: Options): JsPlugin {
     },
     resolve: {
       filters: {
-        sources: ['virtual:routes', VIRTUAL_PATH],
+        sources: [VIRTUAL_ID, VIRTUAL_NAME],
         importers: [''],
       },
       async executor() {
@@ -76,7 +128,12 @@ export default function farmPlugin(options: Options): JsPlugin {
         resolvedPaths: [absVirtualPath],
       },
       async executor() {
-        const content = await routeCreator.generateFileContent(updateType);
+        const content = await handleRouteUpdate(
+          routeCreator,
+          updateType,
+          output,
+          writeToDisk
+        );
         updateType = null;
         return {
           content,
@@ -90,17 +147,15 @@ export default function farmPlugin(options: Options): JsPlugin {
       fileWatcher.on(
         'all',
         debounce(async (event, filename) => {
-          if (
-            !routeCreator.isWatchFile(filename) &&
-            !routeCreator.isMetaFile(filename)
-          ) {
-            return;
-          }
-          if (event === 'add' || event === 'unlink') {
-            updateType = 'fileListChange';
-          } else if (event === 'change' && routeCreator.isMetaFile(filename)) {
-            routeCreator.clearMetaCache(filename);
-            updateType = 'fileMetaChange';
+          if (routeCreator.isWatchFile(filename)) {
+            if (event === 'add' || event === 'unlink') {
+              updateType = 'fileListChange';
+            }
+          } else if (routeCreator.isMetaFile(filename)) {
+            if (event === 'change' || event === 'unlink') {
+              updateType = 'fileMetaChange';
+              routeCreator.clearMetaCache(filename);
+            }
           }
           if (updateType) {
             await server.hmrEngine.hmrUpdate(absVirtualPath);
@@ -137,10 +192,58 @@ function resolveOptions(opts: Options) {
     dir: join(cwd, 'src/layouts'),
     basePath: '',
     isGlobal: true,
+    pattern: /layouts\/index\.(jsx?|tsx?)$/,
   });
 
-  const output = join(cwd, 'node_modules/.farm/virtual_routes.tsx');
-  const absVirtualPath = join(cwd, VIRTUAL_PATH);
+  const isVitePlugin = isVite();
+  const virtualPath = isVitePlugin ? VITE_VIRTUAL_WRITE_NAME : VIRTUAL_NAME;
+  const output = join(cwd, 'node_modules', virtualPath);
+  const absVirtualPath = join(cwd, virtualPath);
 
-  return { dirs: resolveDirs, output, absVirtualPath, ...rest };
+  return { dirs: resolveDirs, output, absVirtualPath, isVitePlugin, ...rest };
+}
+
+function isVite() {
+  // 是否为vite环境
+  const cwd = process.cwd();
+  const paths = [join(cwd, 'vite.config.ts'), join(cwd, 'vite.config.js')];
+  const configPath = tryPaths(paths);
+  return !!configPath;
+}
+
+async function handleRouteUpdate(
+  routeCreator: Generate,
+  updateType: UploadType,
+  output: string,
+  writeToDisk: boolean
+) {
+  const content = await routeCreator.generateFileContent(updateType);
+  if (writeToDisk) {
+    writeFile(output, content);
+  }
+  return content;
+}
+
+function writeFile(path: string, content: string) {
+  try {
+    fs.writeFileSync(path, content);
+  } catch (err) {
+    console.error(`Failed to write file at ${path}:`, err);
+  }
+}
+
+function updateViteFile(server: any) {
+  try {
+    const { moduleGraph } = server;
+    const mods = moduleGraph.getModulesByFile(VITE_VIRTUAL_NAME);
+    if (mods) {
+      for (const mod of mods) {
+        const seen = new Set();
+        moduleGraph.invalidateModule(mod, seen, Date.now(), true);
+      }
+    }
+    server.ws.send({ type: 'full-reload' });
+  } catch (err) {
+    console.error('Failed to update Vite file:', err);
+  }
 }
