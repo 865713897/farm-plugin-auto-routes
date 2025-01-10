@@ -110,7 +110,8 @@ export function filePathToRoutePath(
     .replace(/\\/g, '/')
     .replace(ROUTE_PATH_REGEX, '')
     .slice(1)
-    .toLocaleLowerCase();
+    .replace(/([a-z])([A-Z])/g, '$1-$2') // 将驼峰式命名转换为连字符命名
+    .toLowerCase();
 }
 
 export function getDirTarget(dir: string, isGlobal: boolean): string {
