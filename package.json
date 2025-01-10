@@ -1,7 +1,7 @@
 {
   "name": "farm-plugin-auto-routes",
-  "version": "0.0.4",
-  "description": "",
+  "version": "0.0.5",
+  "description": "file system based routing plugin for farmfe or vite",
   "main": "./build/cjs/index.cjs",
   "types": "./build/esm/index.d.ts",
   "type": "module",
@@ -20,9 +20,14 @@
     "dev": "farm watch",
     "prepublishOnly": "npm run build"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["farmfe", "vite", "plugin", "auto-routes", "react"],
+  "homepage": "https://github.com/865713897/farm-plugin-auto-routes",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/865713897/farm-plugin-auto-routes.git"
+  },
+  "author": "不吃苦瓜片 <865713897@qq.com>",
+  "license": "MIT",
   "devDependencies": {
     "@farmfe/cli": "^1.0.1",
     "@farmfe/core": "^1.1.1",

@@ -1,6 +1,6 @@
-export const VIRTUAL_NAME = 'farm-virtual_routes.tsx';
-export const VITE_VIRTUAL_NAME = '\0vite-virtual_routes.tsx';
-export const VITE_VIRTUAL_WRITE_NAME = 'vite-virtual_routes.tsx';
+export const VIRTUAL_NAME = 'farmfe_plugin_virtual_routes.tsx';
+export const VITE_VIRTUAL_NAME = '\0vite_plugin_virtual_routes.tsx';
+export const VITE_VIRTUAL_WRITE_NAME = 'vite_plugin_virtual_routes.tsx';
 export const VIRTUAL_ID = 'virtual:routes';
 export const PAGE_FILE_REGEX = /.(jsx?|tsx?)$/;
 export const ROUTE_PATH_REGEX = /(\/index)?.(jsx?|tsx?)$/;

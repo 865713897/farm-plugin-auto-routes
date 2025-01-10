@@ -1,9 +1,12 @@
 <div align="center">
   <img src="./assets//logo.png" />
-  <h3>基于Farm的自动生成路由插件</h3>
+  <h3>基于 Farm/Vite 的自动生成路由插件</h3>
   <p>
     <a href="https://github.com/farm-fe/farm#readme">
       <img src="https://img.shields.io/badge/farmfe-%3E%3D1.0.1-blue?labelColor=%23ff9ff330&color=%238F1A7F" />
+    </a>
+    <a href="https://github.com/vitejs/vite#readme">
+      <img src="https://img.shields.io/badge/vite-%3E%3D6.0.0-blue?labelColor=%23f7e425&color=%23bd34fe" />
     </a>
   </p>
 </div>
@@ -122,7 +125,7 @@ interface dirOptions {
 
 是否将生成的路由配置写入磁盘，默认不写入磁盘，只生成在内存中，方便调试。
 
-默认写入位置为 `**/node_modules/.farm/virtual_routes.tsx`。
+默认写入位置为 `**/node_modules/(farmfe_plugin_virtual_routes|vite_plugin_virtual_routes).tsx`。
 
 ### 路由元数据
 
@@ -157,7 +160,7 @@ src
 │   └── index.tsx
 ```
 
-插件采用的虚拟模块，并未生成文件写入磁盘，如果你想查看生成的文件，请设置 writeToDisk 为 true，插件会自动生成文件到 node_modules/.farm/virtual_routes.tsx。
+插件采用的虚拟模块，并未生成文件写入磁盘，如果你想查看生成的文件，请设置 `writeToDisk` 为 `true`，插件会自动生成文件到 `node_modules` 下。
 
 生成的路由配置
 
