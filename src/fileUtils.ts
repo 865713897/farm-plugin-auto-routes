@@ -58,7 +58,7 @@ export function parseRoutes(
     const layoutId = layoutMap.get(dir) || layoutMap.get('global') || null; // 优先使用局部Layout
     for (const file of files) {
       const routePath = filePathToRoutePath(file, dir, basePath);
-      const routeId = routePath.replace('/', '-') || 'index';
+      const routeId = routePath.replace(/\//g, '-') || 'index';
       const relativePath = getRelativePath(resolvedPath, file);
       const metaPath = file.replace(PAGE_FILE_REGEX, '.meta.json');
 
@@ -94,9 +94,7 @@ export function parseRoutes(
         `      '${metaData.id}': withLazyLoad(React.lazy(() => import('${relativePath}')))`
       );
 
-      routes.push(
-        `'${metaData.id}':${JSON.stringify(metaData).replaceAll('"', "'")}`
-      );
+      routes.push(`'${metaData.id}':${JSON.stringify(metaData)}`);
     }
   }
 
@@ -109,8 +107,8 @@ export function filePathToRoutePath(
   basePath: string
 ): string {
   return join('/', basePath, filePath.replace(prefix, ''))
-    .replace(ROUTE_PATH_REGEX, '')
     .replace(/\\/g, '/')
+    .replace(ROUTE_PATH_REGEX, '')
     .slice(1)
     .toLocaleLowerCase();
 }
