@@ -8,6 +8,7 @@ import {
   VITE_VIRTUAL_NAME,
   VITE_VIRTUAL_WRITE_NAME,
   VIRTUAL_ID,
+  LAYOUT_FILE_REGEX,
 } from './constant.js';
 
 import type { JsPlugin } from '@farmfe/core';
@@ -192,7 +193,7 @@ function resolveOptions(opts: Options) {
     dir: join(cwd, 'src/layouts'),
     basePath: '',
     isGlobal: true,
-    pattern: /layouts\/index\.(jsx?|tsx?)$/,
+    pattern: LAYOUT_FILE_REGEX,
   });
 
   const isVitePlugin = isVite();
