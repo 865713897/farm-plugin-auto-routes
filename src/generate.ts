@@ -1,5 +1,6 @@
+import fg from 'fast-glob';
 import { generateRouterTemplate } from './routeTemplate.js';
-import { scanDirectory, parseRoutes } from './fileUtils.js';
+import { parseRoutes } from './fileUtils.js';
 import CacheManage from './cacheManage.js';
 import {
   PAGE_FILE_REGEX,
@@ -12,25 +13,25 @@ import type { dirType, fileListType } from './interfaces.js';
 export interface GenerateRouteOptions {
   dirs: dirType[];
   resolvedPath: string; // 文件使用路径
-  output: string; // 文件写入路径
-  ignoredNames?: string[]; // 忽略的文件名
 }
 
 export default class GenerateRoute {
   private resolvedPath: string;
-  private output: string;
   private fileListCache: fileListType[] | null = null;
   private ignoredRegex: RegExp = null;
   private metaCache = new CacheManage();
   private dirs: dirType[];
+  private ignore: string[];
 
   constructor(opts: GenerateRouteOptions) {
-    const { ignoredNames = [], resolvedPath, output, dirs } = opts;
+    const { resolvedPath, dirs } = opts;
+    const ignore = ['**/node_modules/**', '**/*.d.ts'];
+    for (const item of DEFAULT_IGNORED_NAMES) {
+      ignore.push(...[`**/${item}.*`, `**/${item}/**`]);
+    }
+    this.ignore = ignore;
     this.resolvedPath = resolvedPath;
-    this.output = output;
-    this.ignoredRegex = new RegExp(
-      `${[...DEFAULT_IGNORED_NAMES, ...ignoredNames].join('|')}`
-    );
+    this.ignoredRegex = new RegExp(`${DEFAULT_IGNORED_NAMES.join('|')}`);
     this.dirs = dirs;
   }
 
@@ -61,13 +62,15 @@ export default class GenerateRoute {
     }
     const fileList: fileListType[] = [];
     for (const { dir, basePath, pattern, isGlobal } of dirs) {
-      let files = await scanDirectory(dir);
-      files = files.filter(
-        (filename) =>
-          this.isPageFile(filename) &&
-          this.isNotIgnoredFile(filename) &&
-          (!pattern || pattern.test(filename))
-      );
+      let files = await fg('**/*.@(tsx|jsx|ts|js)', {
+        cwd: dir,
+        absolute: true,
+        onlyFiles: true,
+        ignore: this.ignore,
+      });
+      if (pattern) {
+        files = files.filter((file) => pattern.test(file));
+      }
       fileList.push({ dir, basePath, files, isGlobal });
     }
     this.fileListCache = fileList;

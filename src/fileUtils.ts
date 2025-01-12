@@ -1,5 +1,4 @@
-import { join, sep } from 'path';
-import fsp from 'fs/promises';
+import { join } from 'path';
 import fs from 'fs';
 import {
   PAGE_FILE_REGEX,
@@ -9,27 +8,6 @@ import {
 } from './constant.js';
 import CacheManage from './cacheManage.js';
 import type { fileListType } from './interfaces.js';
-
-export async function scanDirectory(directory: string): Promise<string[]> {
-  const isExist = await fsp
-    .access(directory)
-    .then(() => true)
-    .catch(() => false);
-  if (!isExist) return [];
-
-  const entries = await fsp.readdir(directory, { withFileTypes: true });
-  const files: string[] = [];
-  for (const entry of entries) {
-    const entryPath = join(directory, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...(await scanDirectory(entryPath)));
-    } else {
-      files.push(entryPath);
-    }
-  }
-
-  return files;
-}
 
 // 解析路由文件
 export function parseRoutes(
@@ -115,7 +93,7 @@ export function filePathToRoutePath(
 }
 
 export function getDirTarget(dir: string, isGlobal: boolean): string {
-  return isGlobal ? LAYOUT_ID : `@@${dir.split(sep).pop()}-layout`;
+  return isGlobal ? LAYOUT_ID : `@@${dir.split('/').pop()}-layout`;
 }
 
 export function normalizePath(path: string) {
@@ -125,8 +103,8 @@ export function normalizePath(path: string) {
 export function getRelativePath(from: string, to: string) {
   if (from === to) return '';
 
-  const fromParts = from.split(sep);
-  const toParts = to.split(sep);
+  const fromParts = from.split('/');
+  const toParts = to.split('/');
 
   let i = 0;
   while (

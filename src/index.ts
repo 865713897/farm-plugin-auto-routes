@@ -55,7 +55,6 @@ export default function farmPlugin(options: Options = {}): JsPlugin {
   const routeCreator = new Generate({
     dirs,
     resolvedPath: absVirtualPath,
-    output,
   });
   let updateType: UploadType = null;
 
@@ -173,24 +172,24 @@ function resolveOptions(opts: Options) {
   let resolveDirs: dirType[] = [];
 
   if (!dirs) {
-    resolveDirs = [{ dir: join(cwd, 'src/pages'), basePath: '' }];
+    resolveDirs = [{ dir: resolvePath(cwd, 'src/pages'), basePath: '' }];
   } else if (typeof dirs === 'string') {
-    const dir = isAbsolute(dirs) ? dirs : join(cwd, dirs);
-    resolveDirs = [{ dir, basePath: '' }];
+    resolveDirs = [{ dir: resolvePath(cwd, dirs), basePath: '' }];
   } else if (Array.isArray(dirs)) {
     resolveDirs = dirs.map((d) => {
       if (typeof d === 'string') {
-        return { dir: isAbsolute(d) ? d : join(cwd, d), basePath: '' };
+        return { dir: resolvePath(cwd, d), basePath: '' };
       }
       return {
-        dir: isAbsolute(d.dir) ? d.dir : join(cwd, d.dir),
+        dir: resolvePath(cwd, d.dir),
         basePath: d.basePath || '',
-        pattern: d.pattern,
+        pattern:
+          typeof d.pattern === 'string' ? new RegExp(d.pattern) : d.pattern,
       };
     });
   }
   resolveDirs.push({
-    dir: join(cwd, 'src/layouts'),
+    dir: resolvePath(cwd, 'src/layouts'),
     basePath: '',
     isGlobal: true,
     pattern: LAYOUT_FILE_REGEX,
@@ -198,8 +197,8 @@ function resolveOptions(opts: Options) {
 
   const isVitePlugin = isVite();
   const virtualPath = isVitePlugin ? VITE_VIRTUAL_WRITE_NAME : VIRTUAL_NAME;
-  const output = join(cwd, 'node_modules', virtualPath);
-  const absVirtualPath = join(cwd, virtualPath);
+  const output = resolvePath(cwd, `node_modules/${virtualPath}`);
+  const absVirtualPath = resolvePath(cwd, virtualPath);
 
   return { dirs: resolveDirs, output, absVirtualPath, isVitePlugin, ...rest };
 }
@@ -247,4 +246,12 @@ function updateViteFile(server: any) {
   } catch (err) {
     console.error('Failed to update Vite file:', err);
   }
+}
+
+function resolvePath(cwd: string, dir: string): string {
+  // 统一使用 posix 格式路径
+  const absolutePath = isAbsolute(dir)
+    ? dir.split('\\').join('/')
+    : join(cwd, dir);
+  return absolutePath.split('\\').join('/'); // 转换为 posix 格式
 }
