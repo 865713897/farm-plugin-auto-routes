@@ -27,7 +27,7 @@ export default class GenerateRoute {
     const { resolvedPath, dirs } = opts;
     const ignore = ['**/node_modules/**', '**/*.d.ts'];
     for (const item of DEFAULT_IGNORED_NAMES) {
-      ignore.push(...[`**/${item}.*`, `**/${item}/**`]);
+      ignore.push(...[`**/${item}?(s).*`, `**/${item}?(s)/**`]);
     }
     this.ignore = ignore;
     this.resolvedPath = resolvedPath;

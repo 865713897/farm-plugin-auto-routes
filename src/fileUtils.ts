@@ -60,7 +60,6 @@ export function parseRoutes(
         ...rest,
       };
 
-      // 如果是Layout文件则不生成路由
       if (LAYOUT_FILE_REGEX.test(file)) {
         metaData.id = layoutId;
         metaData.isLayout = true;
