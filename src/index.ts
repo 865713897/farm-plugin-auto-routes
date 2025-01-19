@@ -116,7 +116,7 @@ export default function farmPlugin(options: Options = {}): JsPlugin {
       },
       async executor() {
         return {
-          resolvedPath: absVirtualPath,
+          resolvedPath: VIRTUAL_NAME,
           external: false,
           sideEffects: false,
           meta: {},
@@ -125,7 +125,7 @@ export default function farmPlugin(options: Options = {}): JsPlugin {
     },
     load: {
       filters: {
-        resolvedPaths: [absVirtualPath],
+        resolvedPaths: [VIRTUAL_NAME],
       },
       async executor() {
         const content = await handleRouteUpdate(
@@ -158,7 +158,7 @@ export default function farmPlugin(options: Options = {}): JsPlugin {
             }
           }
           if (updateType) {
-            await server.hmrEngine.hmrUpdate(absVirtualPath);
+            await server.hmrEngine.hmrUpdate(VIRTUAL_NAME);
           }
         }, 300)
       );

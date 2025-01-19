@@ -2,18 +2,18 @@ declare module '*.svg';
 declare module '*.png';
 declare module '*.css';
 
+declare interface RouteType {
+  id: string;
+  path: string;
+  Component: LazyExoticComponent<ComponentType<any>>,
+  children?: RouteType[];
+  [key: string]: any;
+}
+
 declare module 'virtual:routes' {
-  export const getRoutes: () => {
-    routes: Record<
-      string,
-      {
-        id: string;
-        parentId?: string;
-        path: string;
-        isLayout?: boolean;
-        [key: string]: any;
-      }
-    >;
-    routeComponents: Record<string, React.ComponentType<any>>;
-  };
+  import type { ComponentType, LazyExoticComponent } from 'react';
+
+  const routes: RouteType[];
+
+  export default routes;
 }

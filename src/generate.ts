@@ -44,13 +44,13 @@ export default class GenerateRoute {
       updateType !== 'fileListChange'
     );
 
-    const { routes, routeComponents } = parseRoutes(
+    const routes: string = parseRoutes(
       fileList,
       this.resolvedPath,
       this.metaCache
     );
 
-    const content = generateRouterTemplate(routes, routeComponents);
+    const content = generateRouterTemplate(routes);
 
     return content;
   }
