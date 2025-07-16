@@ -7,35 +7,34 @@ const ext = format === 'esm' ? 'mjs' : 'cjs';
 export default defineConfig({
   compilation: {
     input: {
-      index: './src/index.ts'
+      index: './src/index.ts',
     },
     output: {
       path: `build/${format}`,
       entryFilename: `[entryName].${ext}`,
-      targetEnv: 'node',
-      format
+      targetEnv: 'node-next',
+      format,
     },
     partialBundling: {
       enforceResources: [
         {
           name: 'index',
-          test: ['.+']
-        }
-      ]
+          test: ['.+'],
+        },
+      ],
     },
-    minify: true,
+    external: ['fast-glob'],
+    minify: false,
     sourcemap: false,
     presetEnv: false,
     persistentCache: {
       envs: {
-        FARM_FORMAT: format
-      }
-    }
+        FARM_FORMAT: format,
+      },
+    },
   },
   server: {
-    hmr: false
+    hmr: false,
   },
-  plugins: [
-    farmDtsPlugin()
-  ]
+  plugins: [farmDtsPlugin()],
 });

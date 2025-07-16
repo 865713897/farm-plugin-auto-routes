@@ -1,26 +1,30 @@
 export default class CacheManage {
-  private cache: Map<string, any> = new Map();
+  private cache = new Map<string, any>();
 
   constructor() {}
 
-  set(key: string, value: any) {
+  public set(key: string, value: any) {
     this.cache.set(key, value);
   }
 
-  get(key: string) {
+  public get(key: string) {
     return this.cache.get(key);
   }
 
-  has(key: string) {
+  public delete(key: string) {
+    this.cache.delete(key);
+  }
+
+  public clear() {
+    this.cache.clear();
+  }
+
+  public has(key: string) {
     return this.cache.has(key);
   }
 
-  clear(key: string | null) {
-    if (key) {
-      this.cache.delete(key);
-    } else {
-      this.cache.clear();
-    }
+  public getValues() {
+    return this.cache.values();
   }
 
   getOrInsertWith(key: string, callback: () => any) {

@@ -1,4 +1,3 @@
-import { LazyExoticComponent, ComponentType } from 'react';
 import {
   HashRouter as Router,
   Route,
@@ -10,7 +9,7 @@ import withProtected from './ProtectedRoute';
 
 export default function AppRouter() {
   const renderRoutes = (routes: RouteType[]) => {
-    return routes.map((route) => {
+    return routes?.map((route) => {
       const { id, path, Component, children = [] } = route;
       const ProtectedComponent = withProtected(Component);
       return (
@@ -25,7 +24,7 @@ export default function AppRouter() {
     <Router>
       <Routes>
         {renderRoutes(routes)}
-        <Route path='*' element={<Navigate to='/' />} />
+        <Route path='*' element={<Navigate to='/404' />} />
       </Routes>
     </Router>
   );
