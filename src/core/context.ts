@@ -20,6 +20,7 @@ export default class Context {
   private framework: FrameworkEnum;
   private writeToDisk: boolean;
   private writePath: string;
+  private fileListCache: FileItem[] = [];
   resolver: {
     suffix: string;
     generateTemplate: (input: string) => string;
@@ -37,23 +38,55 @@ export default class Context {
     }, []);
   }
 
-  async getFileList(dirs: dirType[]): Promise<FileItem[]> {
-    let filesList: FileItem[] = [];
+  // 初始化时，获取所有文件列表
+  async getInitialFileList() {
     const { suffix } = this.resolver;
-    for (const { dir, pattern, basePath, isGlobal = false } of dirs) {
-      let list = await fg(`**/*.@(${suffix})`, {
+    let fileList: FileItem[] = [];
+
+    for (const { dir, pattern, basePath, isGlobal = false } of this.dirs) {
+      let files = await fg(`**/*.@(${suffix})`, {
         cwd: dir,
         absolute: true,
         onlyFiles: true,
         ignore: this.ignore,
       });
+
       if (pattern && pattern instanceof RegExp) {
-        list = list.filter((file) => pattern.test(file));
+        files = files.filter((file) => pattern.test(file));
       }
-      filesList.push({ dir, files: list, basePath, isGlobal });
+
+      fileList.push({ dir, basePath, files, isGlobal });
     }
 
-    return filesList;
+    this.fileListCache = fileList; // ✅ 缓存
+  }
+
+  getFileList(): FileItem[] {
+    return this.fileListCache;
+  }
+
+  // ✅ 增加文件（文件变动监听时调用）
+  addFile(file: string) {
+    const dirItem = this.dirs.find(({ dir }) => file.startsWith(dir));
+    if (!dirItem) return;
+
+    const cacheItem = this.fileListCache.find(
+      (item) => item.dir === dirItem.dir && item.basePath === dirItem.basePath
+    );
+
+    if (cacheItem && !cacheItem.files.includes(file)) {
+      cacheItem.files.push(file);
+    }
+  }
+
+  // ✅ 删除文件（文件变动监听时调用）
+  removeFile(file: string) {
+    for (const fileGroup of this.fileListCache) {
+      const index = fileGroup.files.indexOf(file);
+      if (index !== -1) {
+        fileGroup.files.splice(index, 1);
+      }
+    }
   }
 
   async generateFileContent() {
@@ -63,9 +96,9 @@ export default class Context {
 
     const { generateTemplate } = this.resolver;
 
-    const fileList = await this.getFileList(this.dirs);
+    const fileList = this.getFileList();
 
-    const routesString = getResolvedRoutes(this.framework, {
+    const routesString = await getResolvedRoutes(this.framework, {
       fileList,
       generatePath: this.generatePath,
     });

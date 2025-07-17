@@ -1,20 +1,22 @@
 import type { JsPlugin } from '@farmfe/core';
-import { hasPlugin } from '../utils/index.js';
+import { hasPlugin, unifiedUnixPathStyle } from '../utils/index.js';
 import { FrameworkEnum, virtualIdList } from '../constant.js';
 import RouteContext from '../core/context.js';
+import { clearRouteMetaCache } from '../core/routeMeta.js';
 
 const VIRTUAL_FILE_NAME = 'farmfe_plugin_virtual_routes.ts';
 
 export function farmPlugin(ctx: RouteContext): JsPlugin {
   return {
     name: 'farm-plugin-auto-routes',
-    configResolved({ plugins, vitePlugins }) {
+    async configResolved({ plugins, vitePlugins }) {
       if (!ctx.isInit()) {
         if (hasPlugin(plugins, '@farmfe/plugin-react')) {
           ctx.setFramework(FrameworkEnum.REACT);
         } else if (hasPlugin(vitePlugins, 'vite:vue')) {
           ctx.setFramework(FrameworkEnum.VUE);
         }
+        await ctx.getInitialFileList();
       }
     },
     resolve: {
@@ -49,10 +51,20 @@ export function farmPlugin(ctx: RouteContext): JsPlugin {
       const fileWatcher = server.watcher.getInternalWatcher();
 
       fileWatcher.on('all', async (event, filename) => {
-        if (event === 'add' || event === 'unlink') {
-          if (ctx.isWatchFile(filename)) {
-            await server.hmrEngine.hmrUpdate(VIRTUAL_FILE_NAME);
-          }
+        const unixFilename = unifiedUnixPathStyle(filename);
+
+        if (!ctx.isWatchFile(unixFilename)) return;
+
+        const handlers: Record<string, () => void> = {
+          add: () => ctx.addFile(unixFilename),
+          unlink: () => ctx.removeFile(unixFilename),
+          change: () => clearRouteMetaCache(unixFilename),
+        };
+
+        const handler = handlers[event];
+        if (handler) {
+          handler();
+          await server.hmrEngine.hmrUpdate(VIRTUAL_FILE_NAME); // 触发热更新
         }
       });
     },

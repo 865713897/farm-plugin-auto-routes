@@ -1,19 +1,21 @@
 import type { Plugin } from 'vite';
 import RouterContext from '../core/context.js';
-import { hasPlugin } from '../utils/index.js';
+import { hasPlugin, unifiedUnixPathStyle } from '../utils/index.js';
 import { FrameworkEnum, virtualIdList } from '../constant.js';
+import { clearRouteMetaCache } from '../core/routeMeta.js';
 
 const VIRTUAL_FILE_NAME = '\0vite_plugin_virtual_routes.ts';
 export function vitePlugin(ctx: RouterContext): Plugin {
   return {
     name: 'farm-plugin-auto-routes',
-    configResolved({ plugins }) {
+    async configResolved({ plugins }) {
       if (!ctx.isInit()) {
         if (hasPlugin(plugins, 'vite:react')) {
           ctx.setFramework(FrameworkEnum.REACT);
         } else if (hasPlugin(plugins, 'vite:vue')) {
           ctx.setFramework(FrameworkEnum.VUE);
         }
+        await ctx.getInitialFileList();
       }
     },
     resolveId(id: string) {
@@ -30,10 +32,20 @@ export function vitePlugin(ctx: RouterContext): Plugin {
     },
     configureServer(server) {
       server.watcher.on('all', (event, filename) => {
-        if (event === 'add' || event === 'unlink') {
-          if (ctx.isWatchFile(filename)) {
-            updateViteFile(server);
-          }
+        const unixFilename = unifiedUnixPathStyle(filename);
+
+        if (!ctx.isWatchFile(unixFilename)) return;
+
+        const handlers: Record<string, () => void> = {
+          add: () => ctx.addFile(unixFilename),
+          unlink: () => ctx.removeFile(unixFilename),
+          change: () => clearRouteMetaCache(unixFilename),
+        };
+
+        const handler = handlers[event];
+        if (handler) {
+          handler();
+          updateViteFile(server); // 触发热更新
         }
       });
     },
