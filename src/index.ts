@@ -27,13 +27,14 @@ import { join } from 'path';
 
 import RouteContext from './core/context.js';
 import { farmPlugin, vitePlugin } from './adapters/index.js';
-import { isVite } from './utils/index.js';
+import { isVite, unifiedUnixPathStyle } from './utils/index.js';
 
 import { IOptions, dirType } from './types/index.js';
 
 export default function AutoRoutesPlugin(options: IOptions) {
   const { writeToDisk } = options;
-  const { dirs, isVitePlugin, generatePath, writePath } = resolveOptions(options);
+  const { dirs, isVitePlugin, generatePath, writePath } =
+    resolveOptions(options);
   let ctx = new RouteContext({ dirs, generatePath, writePath, writeToDisk });
   if (isVitePlugin) {
     return vitePlugin(ctx);
@@ -42,21 +43,25 @@ export default function AutoRoutesPlugin(options: IOptions) {
 }
 
 export function resolveOptions(opts: IOptions) {
-  const { dirs, writeToDisk } = opts;
+  const { dirs } = opts;
   const cwd = process.cwd();
   let resolveDirs: dirType[] = [];
 
   if (!dirs) {
-    resolveDirs = [{ dir: join(cwd, 'src/pages'), basePath: '' }];
+    resolveDirs = [
+      { dir: unifiedUnixPathStyle(join(cwd, 'src/pages')), basePath: '' },
+    ];
   } else if (typeof dirs === 'string') {
-    resolveDirs = [{ dir: join(cwd, dirs), basePath: '' }];
+    resolveDirs = [
+      { dir: unifiedUnixPathStyle(join(cwd, dirs)), basePath: '' },
+    ];
   } else if (Array.isArray(dirs)) {
     resolveDirs = dirs.map((d) => {
       if (typeof d === 'string') {
-        return { dir: join(cwd, d), basePath: '' };
+        return { dir: unifiedUnixPathStyle(join(cwd, d)), basePath: '' };
       }
       return {
-        dir: join(cwd, d.dir),
+        dir: unifiedUnixPathStyle(join(cwd, d.dir)),
         basePath: d.basePath || '',
         pattern:
           typeof d.pattern === 'string' ? new RegExp(d.pattern) : d.pattern,
@@ -65,7 +70,7 @@ export function resolveOptions(opts: IOptions) {
   }
   // 增加全局路由路径
   resolveDirs.push({
-    dir: join(cwd, 'src/layouts'),
+    dir: unifiedUnixPathStyle(join(cwd, 'src/layouts')),
     basePath: '',
     isGlobal: true,
     pattern: /layouts\/index.(tsx|jsx|vue)/,
@@ -75,19 +80,15 @@ export function resolveOptions(opts: IOptions) {
   let virtualName = isVitePlugin
     ? 'vite_plugin_virtual_routes.ts'
     : 'farmfe_plugin_virtual_routes.ts';
-  const writePath = join(cwd, 'node_modules', virtualName);
-  const generatePath = join(cwd, virtualName);
-
-  if (isVitePlugin) {
-    virtualName = '\0' + virtualName;
-  }
+  const writePath = unifiedUnixPathStyle(
+    join(cwd, 'node_modules', virtualName)
+  );
+  const generatePath = unifiedUnixPathStyle(join(cwd, virtualName));
 
   return {
     dirs: resolveDirs,
-    virtualName,
     writePath,
     generatePath,
     isVitePlugin,
-    writeToDisk,
   };
 }

@@ -83,3 +83,7 @@ export function hasPlugin(plugins: readonly any[], pluginName: string) {
     return false;
   });
 }
+
+export function unifiedUnixPathStyle(p: string) {
+  return p.replace(/\\/g, '/');
+}
