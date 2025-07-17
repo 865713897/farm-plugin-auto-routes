@@ -1,4 +1,5 @@
 import { FrameworkEnum } from '../constant.js';
+import { getRouteMetaFromFiles } from './routeMeta.js';
 import { normalizePath, getRelativePath } from '../utils/index.js';
 import type { FileItem } from '../types/index.js';
 
@@ -55,14 +56,17 @@ function collectLayoutIds(fileList: FileItem[]): Record<string, string> {
   return layoutIdMap;
 }
 
-function buildRouteMap(
+async function buildRouteMap(
   framework: FrameworkEnum,
   fileList: FileItem[],
   generatePath: string,
   layoutIdMap: Record<string, string>
-): Record<string, RouteMeta> {
+): Promise<Record<string, RouteMeta>> {
   const routesMap: Record<string, RouteMeta> = {};
 
+  const filePaths = fileList.reduce((acc, { files }) => acc.concat(files), []);
+  const routeMetas = await getRouteMetaFromFiles(filePaths);
+  
   for (const { dir, basePath, files } of fileList) {
     for (const file of files) {
       const isLayout = isLayoutFile(file);
@@ -74,7 +78,7 @@ function buildRouteMap(
         routePath.slice(1).replace(/\//g, '-') || `${layoutId}-index`;
       const relativePath = getRelativePath(generatePath, file);
 
-      const route: RouteMeta = {
+      let route: RouteMeta = {
         id: isLayout ? layoutId : routeId,
         path: normalizePath('/' + routePath.replace('$', ':')),
       };
@@ -82,11 +86,11 @@ function buildRouteMap(
       if (isLayout) {
         route.isLayout = true;
       } else {
-        route.parentId = layoutId ?? '';
-        if (layoutId && route.path.startsWith(normalizePath('/' + basePath))) {
-          route.path = route.path.slice(basePath.length + 1) || '';
-        }
+        route.parentId = layoutId ?? null;
       }
+
+      const routeMeta = routeMetas[file];
+      route = { ...route, ...routeMeta };
 
       if (framework === FrameworkEnum.REACT) {
         route.Component = `__LAZY__React.lazy(() => import('${relativePath}'))__LAZY__`;
@@ -107,6 +111,7 @@ function linkParentChildRoutes(routesMap: Record<string, RouteMeta>) {
   Object.values(routesMap).forEach((route) => {
     if (route.parentId && routesMap[route.parentId]) {
       const parent = routesMap[route.parentId];
+      route.path = route.path.replace(parent.path, '').replace(/^\//, '') || '';
       parent.children ??= [];
       parent.children.push(route);
       childRouteIds.push(route.id);
@@ -132,14 +137,14 @@ function pruneEmptyLayouts(
   }
 }
 
-export function getResolvedRoutes(
+export async function getResolvedRoutes(
   framework: FrameworkEnum,
   opts: IOpts
-): string {
+): Promise<string> {
   const { fileList, generatePath } = opts;
 
   const layoutIdMap = collectLayoutIds(fileList);
-  const routesMap = buildRouteMap(
+  const routesMap = await buildRouteMap(
     framework,
     fileList,
     generatePath,

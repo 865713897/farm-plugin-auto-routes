@@ -1,3 +1,7 @@
+// @route-id: 123
+// @route-parent-id: user
+// @route-meta: { "title": "User Id" }
+
 import { useParams } from 'react-router-dom';
 
 export default function UserId() {
