@@ -66,7 +66,7 @@ async function buildRouteMap(
 
   const filePaths = fileList.reduce((acc, { files }) => acc.concat(files), []);
   const routeMetas = await getRouteMetaFromFiles(filePaths);
-  
+
   for (const { dir, basePath, files } of fileList) {
     for (const file of files) {
       const isLayout = isLayoutFile(file);
@@ -74,8 +74,13 @@ async function buildRouteMap(
       const routePath = isLayout
         ? normalizePath('/' + basePath)
         : filePathToRoutePath(file, dir, basePath);
-      const routeId =
-        routePath.slice(1).replace(/\//g, '-') || `${layoutId}-index`;
+      const isIndexFile =
+        (routePath === basePath || routePath === '') && !isLayout;
+      const routeId = isIndexFile
+        ? layoutId
+          ? `${layoutId}-index`
+          : `${dir.split('/').pop()}-index`
+        : routePath.slice(1).replace(/\//g, '-');
       const relativePath = getRelativePath(generatePath, file);
 
       let route: RouteMeta = {
