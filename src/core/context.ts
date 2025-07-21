@@ -5,6 +5,7 @@ import { DEFAULT_IGNORED, FrameworkEnum } from '../constant.js';
 import { getResolvedRoutes } from './parse.js';
 import { getResolver } from '../resolve/index.js';
 import { dirType, FileItem } from '../types/index.js';
+import { getRouteMetaFromFiles } from './routeMeta.js';
 
 interface IOpts {
   dirs: dirType[];
@@ -42,6 +43,7 @@ export default class Context {
   async getInitialFileList() {
     const { suffix } = this.resolver;
     let fileList: FileItem[] = [];
+    let filePathList: string[] = [];
 
     for (const { dir, pattern, basePath, isGlobal = false } of this.dirs) {
       let files = await fg(`**/*.@(${suffix})`, {
@@ -56,9 +58,11 @@ export default class Context {
       }
 
       fileList.push({ dir, basePath, files, isGlobal });
+      filePathList = filePathList.concat(files);
     }
 
     this.fileListCache = fileList; // ✅ 缓存
+    await getRouteMetaFromFiles(filePathList);
   }
 
   getFileList(): FileItem[] {
@@ -70,8 +74,13 @@ export default class Context {
     const dirItem = this.dirs.find(({ dir }) => file.startsWith(dir));
     if (!dirItem) return;
 
+    const { dir, basePath, pattern } = dirItem;
+
     const cacheItem = this.fileListCache.find(
-      (item) => item.dir === dirItem.dir && item.basePath === dirItem.basePath
+      (item) =>
+        item.dir === dir &&
+        item.basePath === basePath &&
+        (!pattern || (pattern instanceof RegExp && pattern.test(file)))
     );
 
     if (cacheItem && !cacheItem.files.includes(file)) {

@@ -34,7 +34,7 @@ export function extractTag(
       return JSON.parse(raw);
     } catch {
       console.warn(
-        `[farm-plugin-auto-routes] > failed to parse JSON in ${filePath}:`,
+        `[farm-plugin-auto-routes] failed to parse JSON in ${filePath}:`,
         raw
       );
       return -1;
@@ -82,7 +82,7 @@ function extractMetaFromContent(content: string, filePath: string): RouteMeta {
     const isValid = validate ? validate(raw) : true;
     if (!isValid) {
       console.warn(
-        `[farm-plugin-auto-routes] > ${filePath}: @${tag} format invalid: ${raw}, ${message}`
+        `[farm-plugin-auto-routes] ${filePath}: @${tag} format invalid: ${raw}, ${message}`
       );
       continue;
     }
@@ -110,7 +110,7 @@ export async function getRouteMetaFromFiles(
         routeMetaCache.set(filePath, meta);
         result[filePath] = meta;
       } catch (err) {
-        console.warn(`Failed to read ${filePath}:`, err);
+        console.warn(`[farm-plugin-auto-routes] Failed to read ${filePath}:`, err);
       }
     })
   );
