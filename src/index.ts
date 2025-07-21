@@ -31,8 +31,8 @@ import { isVite, unifiedUnixPathStyle } from './utils/index.js';
 
 import { IOptions, dirType } from './types/index.js';
 
-export default function AutoRoutesPlugin(options: IOptions) {
-  const { writeToDisk } = options;
+export default function AutoRoutesPlugin(options?: IOptions) {
+  const { writeToDisk } = options || {};
   const { dirs, isVitePlugin, generatePath, writePath } =
     resolveOptions(options);
   let ctx = new RouteContext({ dirs, generatePath, writePath, writeToDisk });
@@ -42,7 +42,7 @@ export default function AutoRoutesPlugin(options: IOptions) {
   return farmPlugin(ctx);
 }
 
-export function resolveOptions(opts: IOptions) {
+export function resolveOptions(opts: IOptions = {}) {
   const { dirs } = opts;
   const cwd = process.cwd();
   let resolveDirs: dirType[] = [];

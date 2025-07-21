@@ -11,12 +11,13 @@ export default defineConfig({
   },
   plugins: [
     ['@farmfe/plugin-react', { runtime: 'automatic' }],
-    farmPlugin({
-      dirs: [
-        { dir: 'src/pages', basePath: '/' },
-        { dir: 'src/manage', basePath: '/manage' },
-      ],
-      writeToDisk: true,
-    }),
+    // farmPlugin({
+    //   dirs: [
+    //     { dir: 'src/pages', basePath: '/' },
+    //     { dir: 'src/manage', basePath: '/manage' },
+    //   ],
+    //   writeToDisk: true,
+    // }),
+    farmPlugin(),
   ],
 });

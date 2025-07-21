@@ -1,4 +1,3 @@
-// @route-id: 123
 // @route-parent-id: user
 // @route-meta: { "title": "User Id" }
 
