@@ -1,11 +1,17 @@
 import type { Plugin } from 'vite';
 import RouterContext from '../core/context.js';
+import { handleFileChange } from '../utils/handleFileChange.js';
+import { debounce } from '../utils/debounce.js';
 import { hasPlugin, unifiedUnixPathStyle } from '../utils/index.js';
 import { FrameworkEnum, virtualIdList } from '../constant.js';
 import { clearRouteMetaCache } from '../core/routeMeta.js';
 
 const VIRTUAL_FILE_NAME = '\0vite_plugin_virtual_routes.ts';
 export function vitePlugin(ctx: RouterContext): Plugin {
+  const addFiles = new Set<string>();
+  const changeFiles = new Set<string>();
+  const removeFiles = new Set<string>();
+
   return {
     name: 'farm-plugin-auto-routes',
     async configResolved({ plugins }) {
@@ -31,21 +37,45 @@ export function vitePlugin(ctx: RouterContext): Plugin {
       }
     },
     configureServer(server) {
-      server.watcher.on('all', (event, filename) => {
-        const unixFilename = unifiedUnixPathStyle(filename);
+      const debounceFlush = debounce(async () => {
+        let shouldUpdate = false;
+        for (const file of Array.from(addFiles)) {
+          ctx.addFile(file);
+          shouldUpdate = true;
+        }
+        for (const file of Array.from(changeFiles)) {
+          if (await handleFileChange(file)) {
+            shouldUpdate = true;
+          }
+        }
+        for (const file of Array.from(removeFiles)) {
+          ctx.removeFile(file);
+          clearRouteMetaCache(file);
+          shouldUpdate = true;
+        }
 
+        addFiles.clear();
+        changeFiles.clear();
+        removeFiles.clear();
+        if (shouldUpdate) {
+          updateViteFile(server); // 触发热更新
+        }
+      }, 300);
+
+      server.watcher.on('all', async (event, filename) => {
+        const unixFilename = unifiedUnixPathStyle(filename);
         if (!ctx.isWatchFile(unixFilename)) return;
 
         const handlers: Record<string, () => void> = {
-          add: () => ctx.addFile(unixFilename),
-          unlink: () => ctx.removeFile(unixFilename),
-          change: () => clearRouteMetaCache(unixFilename),
+          add: () => addFiles.add(unixFilename),
+          change: () => changeFiles.add(unixFilename),
+          unlink: () => removeFiles.add(unixFilename),
         };
 
         const handler = handlers[event];
         if (handler) {
           handler();
-          updateViteFile(server); // 触发热更新
+          debounceFlush();
         }
       });
     },
