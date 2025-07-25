@@ -18,6 +18,5 @@ export default defineConfig({
       ],
       writeToDisk: true,
     }),
-    // farmPlugin(),
   ],
 });
