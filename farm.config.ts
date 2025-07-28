@@ -23,7 +23,7 @@ export default defineConfig({
         },
       ],
     },
-    external: ['fast-glob'],
+    external: ['fast-glob', 'picomatch', 'readline'],
     minify: false,
     sourcemap: false,
     presetEnv: false,
