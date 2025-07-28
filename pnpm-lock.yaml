@@ -11,6 +11,9 @@ importers:
       fast-glob:
         specifier: ^3.3.3
         version: 3.3.3
+      picomatch:
+        specifier: ^4.0.3
+        version: 4.0.3
     devDependencies:
       '@farmfe/cli':
         specifier: ^1.0.4
@@ -24,6 +27,9 @@ importers:
       '@types/node':
         specifier: ^20.11.16
         version: 20.17.14
+      '@types/picomatch':
+        specifier: ^4.0.1
+        version: 4.0.1
       cross-env:
         specifier: ^7.0.3
         version: 7.0.3
@@ -879,6 +885,9 @@ packages:
 
   '@types/object-path@0.11.4':
     resolution: {integrity: sha512-4tgJ1Z3elF/tOMpA8JLVuR9spt9Ynsf7+JjqsQ2IqtiPJtcLoHoXcT6qU4E10cPFqyXX5HDm9QwIzZhBSkLxsw==}
+
+  '@types/picomatch@4.0.1':
+    resolution: {integrity: sha512-dLqxmi5VJRC9XTvc/oaTtk+bDb4RRqxLZPZ3jIpYBHEnDXX8lu02w2yWI6NsPPsELuVK298Z2iR8jgoWKRdUVQ==}
 
   '@types/prop-types@15.7.14':
     resolution: {integrity: sha512-gNMvNH49DJ7OJYv+KAKn0Xp45p8PLl6zo2YnvDIbTd4J6MER2BmWN49TG7n9LvkyihINxeKW8+3bfS2yDC9dzQ==}
@@ -2885,6 +2894,8 @@ snapshots:
       undici-types: 6.19.8
 
   '@types/object-path@0.11.4': {}
+
+  '@types/picomatch@4.0.1': {}
 
   '@types/prop-types@15.7.14': {}
 

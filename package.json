@@ -39,6 +39,7 @@
     "@farmfe/core": "^1.6.6",
     "@farmfe/js-plugin-dts": "^0.6.4",
     "@types/node": "^20.11.16",
+    "@types/picomatch": "^4.0.1",
     "cross-env": "^7.0.3",
     "vite": "^6.0.7"
   },
@@ -46,6 +47,7 @@
     "build"
   ],
   "dependencies": {
-    "fast-glob": "^3.3.3"
+    "fast-glob": "^3.3.3",
+    "picomatch": "^4.0.3"
   }
 }

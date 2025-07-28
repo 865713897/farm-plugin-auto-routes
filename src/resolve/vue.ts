@@ -10,9 +10,19 @@ function generateTemplate(input: string) {
   ].join('\n');
 }
 
+function isPageFile(filePath: string): boolean {
+  return /.vue$/.test(filePath);
+}
+
+function isLayoutFile(filePath: string): boolean {
+  return /layouts\/index.vue$/.test(filePath);
+}
+
 export function resolveVue() {
   return {
     suffix: 'vue',
+    isPageFile,
+    isLayoutFile,
     generateTemplate,
   };
 }

@@ -87,3 +87,16 @@ export function hasPlugin(plugins: readonly any[], pluginName: string) {
 export function unifiedUnixPathStyle(p: string) {
   return p.replace(/\\/g, '/');
 }
+
+export function toCaseInsensitiveGlob(str: string) {
+  return (
+    str
+      .split('')
+      .map((c) => {
+        const lower = c.toLowerCase();
+        const upper = c.toUpperCase();
+        return lower === upper ? c : `[${lower}${upper}]`;
+      })
+      .join('') + '?(s|S)'
+  );
+}

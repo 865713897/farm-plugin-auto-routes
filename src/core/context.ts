@@ -1,31 +1,31 @@
 import fg from 'fast-glob';
+import pm from 'picomatch';
 import fs from 'fs';
 
 import { DEFAULT_IGNORED, FrameworkEnum } from '../constant.js';
 import { getResolvedRoutes } from './parse.js';
 import { getResolver } from '../resolve/index.js';
-import { dirType, FileItem } from '../types/index.js';
 import { getRouteMetaFromFiles } from './routeMeta.js';
+import { toCaseInsensitiveGlob } from '../utils/index.js';
+
+import { DirType, FileItem, ResolverType } from '../types/index.js';
 
 interface IOpts {
-  dirs: dirType[];
+  dirs: DirType[];
   generatePath: string;
   writePath: string;
   writeToDisk?: boolean;
 }
 
 export default class Context {
-  private dirs: dirType[];
+  private dirs: DirType[];
   private ignore: string[];
   private generatePath: string;
   private framework: FrameworkEnum;
   private writeToDisk: boolean;
   private writePath: string;
   private fileListCache: FileItem[] = [];
-  resolver: {
-    suffix: string;
-    generateTemplate: (input: string) => string;
-  };
+  resolver: ResolverType;
 
   constructor(opts: IOpts) {
     const { dirs, generatePath, writePath, writeToDisk } = opts;
@@ -33,10 +33,16 @@ export default class Context {
     this.generatePath = generatePath;
     this.writePath = writePath;
     this.writeToDisk = writeToDisk;
-    this.ignore = DEFAULT_IGNORED.reduce((acc, cur) => {
-      acc.push(...[`**/${cur}?(s).*`, `**/${cur}?(s)/**`]);
-      return acc;
-    }, []);
+    this.ignore = DEFAULT_IGNORED.reduce(
+      (acc, cur) => {
+        acc = acc.concat([
+          `**/${toCaseInsensitiveGlob(cur)}.*`,
+          `**/${toCaseInsensitiveGlob(cur)}/**`,
+        ]);
+        return acc;
+      },
+      ['**/*.d.ts']
+    );
   }
 
   // 初始化时，获取所有文件列表
@@ -46,7 +52,8 @@ export default class Context {
     let filePathList: string[] = [];
 
     for (const { dir, pattern, basePath, isGlobal = false } of this.dirs) {
-      let files = await fg(`**/*.@(${suffix})`, {
+      const source = `${isGlobal ? 'index' : '**/*'}.@(${suffix})`;
+      let files = await fg(source, {
         cwd: dir,
         absolute: true,
         onlyFiles: true,
@@ -69,18 +76,13 @@ export default class Context {
     return this.fileListCache;
   }
 
-  // ✅ 增加文件（文件变动监听时调用）
+  // 增加文件（文件变动监听时调用）
   addFile(file: string) {
     const dirItem = this.dirs.find(({ dir }) => file.startsWith(dir));
     if (!dirItem) return;
 
-    const { dir, basePath, pattern } = dirItem;
-
     const cacheItem = this.fileListCache.find(
-      (item) =>
-        item.dir === dir &&
-        item.basePath === basePath &&
-        (!pattern || (pattern instanceof RegExp && pattern.test(file)))
+      (item) => item.dir === dirItem.dir && item.basePath === dirItem.basePath
     );
 
     if (cacheItem && !cacheItem.files.includes(file)) {
@@ -88,7 +90,7 @@ export default class Context {
     }
   }
 
-  // ✅ 删除文件（文件变动监听时调用）
+  // 删除文件（文件变动监听时调用）
   removeFile(file: string) {
     for (const fileGroup of this.fileListCache) {
       const index = fileGroup.files.indexOf(file);
@@ -126,7 +128,7 @@ export default class Context {
   }
 
   isInit() {
-    return !!this.framework;
+    return !!this.framework && !!this.resolver;
   }
 
   writeFile(path: string, content: string) {
@@ -137,26 +139,25 @@ export default class Context {
     }
   }
 
+  // 判断是否为监听文件
   isWatchFile(filename: string) {
-    return (
-      this.dirs.some(({ dir }) => filename.startsWith(dir)) &&
-      this.isPageFile(filename) &&
-      !this.isIgnoreFile(filename)
+    const { isPageFile, isLayoutFile } = this.resolver;
+    const belongDirs = this.dirs.some(
+      ({ dir, isGlobal, pattern }) =>
+        filename.startsWith(dir) &&
+        (!pattern || (pattern instanceof RegExp && pattern.test(filename))) &&
+        (!isGlobal || (isGlobal && isLayoutFile(filename)))
     );
+    const isPage = isPageFile(filename);
+    const isIgnore = this.isIgnoreFile(filename);
+    return belongDirs && isPage && !isIgnore; // 属于监听目录，是页面文件，且不是忽略文件
   }
 
-  isPageFile(filename: string) {
-    const pageFileRegexp =
-      this.framework === FrameworkEnum.REACT ? /.(js|ts)x?$/ : /.vue$/;
-    return (
-      pageFileRegexp.test(filename) && // 文件扩展名符合页面组件
-      !/\.d\.ts$/.test(filename) // 排除类型声明文件
-    );
-  }
-
-  isIgnoreFile(filename: string) {
-    return DEFAULT_IGNORED.some((pattern) =>
-      new RegExp(pattern).test(filename)
-    );
+  // 判断文件是否被忽略
+  isIgnoreFile(filename: string): boolean {
+    return this.ignore.some((item) => {
+      const isMatch = pm(item);
+      return isMatch(filename);
+    });
   }
 }

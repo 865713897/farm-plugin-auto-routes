@@ -1,4 +1,4 @@
-export type dirType = {
+export type DirType = {
   dir: string;
   basePath: string;
   pattern?: RegExp;
@@ -6,12 +6,16 @@ export type dirType = {
 };
 
 // 组合的文件列表
-export type FileItem = Omit<dirType, 'pattern'> & { files: string[] };
+export type FileItem = Omit<DirType, 'pattern'> & { files: string[] };
 
 export interface IOptions {
-  dirs?: string | (string | dirType)[];
+  dirs?: string | (string | DirType)[];
   writeToDisk?: boolean;
 }
 
-// 插件入参
-export interface IPluginOpts {}
+export type ResolverType = {
+  suffix: string;
+  isPageFile: (filePath: string) => boolean;
+  isLayoutFile: (filePath: string) => boolean;
+  generateTemplate: (input: string) => string;
+};
