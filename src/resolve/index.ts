@@ -1,12 +1,13 @@
-import { FrameworkEnum } from '../constant.js';
+import { frameworkMap } from '../constant.js';
 import { resolveReact } from './react.js';
 import { resolveVue } from './vue.js';
+import { Framework } from '../types/index.js';
 
-export function getResolver(framework: FrameworkEnum) {
+export function getResolver(framework: Framework) {
   switch (framework) {
-    case FrameworkEnum.REACT:
+    case frameworkMap.REACT:
       return resolveReact();
-    case FrameworkEnum.VUE:
+    case frameworkMap.VUE:
       return resolveVue();
     default:
       throw new Error(`Framework ${framework} is not supported.`);

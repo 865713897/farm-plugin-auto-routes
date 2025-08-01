@@ -75,15 +75,6 @@ export function getRelativePath(from: string, to: string) {
   return relativePath;
 }
 
-export function hasPlugin(plugins: readonly any[], pluginName: string) {
-  return plugins.some((plugin) => {
-    if (typeof plugin === 'string') return plugin.includes(pluginName);
-    if (Array.isArray(plugin)) return plugin[0].includes(pluginName);
-    if (typeof plugin === 'object') return plugin?.name?.includes(pluginName);
-    return false;
-  });
-}
-
 export function unifiedUnixPathStyle(p: string) {
   return p.replace(/\\/g, '/');
 }
@@ -99,4 +90,11 @@ export function toCaseInsensitiveGlob(str: string) {
       })
       .join('') + '?(s|S)'
   );
+}
+
+export function isEnumValue<T extends Record<string, string | number>>(
+  enumObj: T,
+  value: unknown
+): value is T[keyof T] {
+  return (Object.values(enumObj) as unknown[]).includes(value);
 }

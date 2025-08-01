@@ -1,16 +1,13 @@
 // UI框架类型
-export enum FrameworkEnum {
-  REACT = 'react',
-  VUE = 'vue',
-}
+export const frameworkMap = {
+  REACT: 'react',
+  VUE: 'vue',
+} as const;
 
-// 是否为layout文件
-export const LAYOUT_FILE_REGEX = /(?:layouts\/index|Layout)\.(tsx?|jsx?|vue)$/i;
-
-export const ROUTE_PATH_REGEX = /(\/index)?.(jsx?|tsx?|vue)$/;
+export const frameworkList = Object.values(frameworkMap);
 
 // 忽略的文件名
-export const DEFAULT_IGNORED = [
+export const defaultIgnoredNames = [
   'component',
   'service',
   'util',

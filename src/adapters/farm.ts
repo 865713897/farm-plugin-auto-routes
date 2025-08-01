@@ -1,8 +1,8 @@
 import type { JsPlugin } from '@farmfe/core';
-import { hasPlugin, unifiedUnixPathStyle } from '../utils/index.js';
+import { unifiedUnixPathStyle } from '../utils/index.js';
 import { handleFileChange } from '../utils/handleFileChange.js';
 import { debounce } from '../utils/debounce.js';
-import { FrameworkEnum, virtualIdList } from '../constant.js';
+import { virtualIdList } from '../constant.js';
 import RouteContext from '../core/context.js';
 import { clearRouteMetaCache } from '../core/routeMeta.js';
 
@@ -15,15 +15,8 @@ export function farmPlugin(ctx: RouteContext): JsPlugin {
 
   return {
     name: 'farm-plugin-auto-routes',
-    async configResolved({ plugins, vitePlugins }) {
-      if (!ctx.isInit()) {
-        if (hasPlugin(plugins, '@farmfe/plugin-react')) {
-          ctx.setFramework(FrameworkEnum.REACT);
-        } else if (hasPlugin(vitePlugins, 'vite:vue')) {
-          ctx.setFramework(FrameworkEnum.VUE);
-        }
-        await ctx.getInitialFileList();
-      }
+    async configResolved() {
+      await ctx.getInitialFileList();
     },
     resolve: {
       filters: {

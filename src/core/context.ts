@@ -2,17 +2,17 @@ import fg from 'fast-glob';
 import pm from 'picomatch';
 import fs from 'fs';
 
-import { DEFAULT_IGNORED, FrameworkEnum } from '../constant.js';
-import { getResolvedRoutes } from './parse.js';
+import { defaultIgnoredNames } from '../constant.js';
 import { getResolver } from '../resolve/index.js';
 import { getRouteMetaFromFiles } from './routeMeta.js';
 import { toCaseInsensitiveGlob } from '../utils/index.js';
 
-import { DirType, FileItem, ResolverType } from '../types/index.js';
+import { DirType, FileItem, ResolverType, Framework } from '../types/index.js';
 
 interface IOpts {
   dirs: DirType[];
   generatePath: string;
+  framework: Framework;
   writePath: string;
   writeToDisk?: boolean;
 }
@@ -21,19 +21,19 @@ export default class Context {
   private dirs: DirType[];
   private ignore: string[];
   private generatePath: string;
-  private framework: FrameworkEnum;
   private writeToDisk: boolean;
   private writePath: string;
   private fileListCache: FileItem[] = [];
-  resolver: ResolverType;
+  private resolver: ResolverType;
 
   constructor(opts: IOpts) {
-    const { dirs, generatePath, writePath, writeToDisk } = opts;
+    const { dirs, generatePath, writePath, writeToDisk, framework } = opts;
     this.dirs = dirs;
     this.generatePath = generatePath;
     this.writePath = writePath;
     this.writeToDisk = writeToDisk;
-    this.ignore = DEFAULT_IGNORED.reduce(
+    this.resolver = getResolver(framework);
+    this.ignore = defaultIgnoredNames.reduce(
       (acc, cur) => {
         acc = acc.concat([
           `**/${toCaseInsensitiveGlob(cur)}.*`,
@@ -67,7 +67,6 @@ export default class Context {
       fileList.push({ dir, basePath, files, isGlobal });
       filePathList = filePathList.concat(files);
     }
-
     this.fileListCache = fileList; // ✅ 缓存
     await getRouteMetaFromFiles(filePathList);
   }
@@ -101,15 +100,11 @@ export default class Context {
   }
 
   async generateFileContent() {
-    if (!this.isInit()) {
-      throw new Error('framework not set');
-    }
-
-    const { generateTemplate } = this.resolver;
+    const { getResolvedRoutes, generateTemplate } = this.resolver;
 
     const fileList = this.getFileList();
 
-    const routesString = await getResolvedRoutes(this.framework, {
+    const routesString = await getResolvedRoutes({
       fileList,
       generatePath: this.generatePath,
     });
@@ -122,15 +117,6 @@ export default class Context {
     return template;
   }
 
-  setFramework(framework: FrameworkEnum) {
-    this.framework = framework;
-    this.resolver = getResolver(framework);
-  }
-
-  isInit() {
-    return !!this.framework && !!this.resolver;
-  }
-
   writeFile(path: string, content: string) {
     try {
       fs.writeFileSync(path, content);
@@ -141,12 +127,12 @@ export default class Context {
 
   // 判断是否为监听文件
   isWatchFile(filename: string) {
-    const { isPageFile, isLayoutFile } = this.resolver;
+    const { isPageFile, isGlobalLayoutFile } = this.resolver;
     const belongDirs = this.dirs.some(
       ({ dir, isGlobal, pattern }) =>
         filename.startsWith(dir) &&
         (!pattern || (pattern instanceof RegExp && pattern.test(filename))) &&
-        (!isGlobal || (isGlobal && isLayoutFile(filename)))
+        (!isGlobal || (isGlobal && isGlobalLayoutFile(filename)))
     );
     const isPage = isPageFile(filename);
     const isIgnore = this.isIgnoreFile(filename);
