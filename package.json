@@ -1,6 +1,6 @@
 {
   "name": "farm-plugin-auto-routes",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "file system based routing plugin for farmfe or vite",
   "main": "./build/cjs/index.cjs",
   "types": "./build/esm/index.d.ts",
