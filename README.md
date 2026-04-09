@@ -107,7 +107,7 @@ type DirType = {
 
 是否将生成的路由配置写入磁盘，默认不写入磁盘，只生成在内存中，方便调试。
 
-默认写入位置为 `**/node_modules/(farmfe_plugin_virtual_routes|vite_plugin_virtual_routes).tsx`。
+默认写入位置为 `**/node_modules/(farmfe_plugin_virtual_routes|vite_plugin_virtual_routes).ts`。
 
 ### 路由元数据
 
