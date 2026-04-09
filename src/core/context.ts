@@ -21,7 +21,7 @@ export default class Context {
   private dirs: DirType[];
   private ignore: string[];
   private generatePath: string;
-  private writeToDisk: boolean;
+  private writeToDisk?: boolean;
   private writePath: string;
   private fileListCache: FileItem[] = [];
   private resolver: ResolverType;
