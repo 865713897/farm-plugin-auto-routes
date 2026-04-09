@@ -113,7 +113,7 @@ type DirType = {
 
 允许用户在文件中以注释的形式定义路由元数据，例如：
 
-- `// route-id`: 路由 id，默认生成，例如 `src/pages/about` 会生成 `about` 作为 id，此 id 会在 routeComponents 中对应一个组件
+- `// route-id`: 路由 id，默认生成，例如 `src/pages/about` 会生成 `about` 作为 id
 - `// route-parent-id`: 父级路由 id，如果存在页面局部路由或全局路由，会自动生成 parentId 为局部路由 id 或全局路由 id，为null时表示全局路由
 - `// route-meta`: 其他自定义数据，例如 `// @route-meta: { "title": "/Page0.tsx" }`
 
