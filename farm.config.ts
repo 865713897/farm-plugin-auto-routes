@@ -24,7 +24,7 @@ export default defineConfig({
       ],
     },
     external: ['fast-glob', 'picomatch', 'readline'],
-    minify: false,
+    minify: true,
     sourcemap: false,
     presetEnv: false,
     persistentCache: {
