@@ -23,3 +23,5 @@ export const defaultIgnoredNames = [
 ];
 
 export const virtualIdList = ['virtual:routes', 'virtual:routes-vue'];
+
+export const DEFAULT_LAYOUT_ID = '__LAYOUT_ID__';

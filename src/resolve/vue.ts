@@ -6,7 +6,11 @@ import {
   linkParentChildRoutes,
   pruneEmptyLayouts,
 } from './common.js';
-import { FileItem, RouteMeta, IResolvedOpts } from '../types/index.js';
+import { DEFAULT_LAYOUT_ID } from '../constant.js';
+import { FileItem } from '../types/file.js';
+import { VueRoute } from '../types/route.js';
+import { VueOptions } from '../types/options.js';
+import { ResolvedRouteOptions } from '../types/resolver.js';
 
 function generateTemplate(input: string) {
   return [
@@ -49,22 +53,21 @@ function collectLayoutIds(fileList: FileItem[]): Record<string, string> {
 async function buildRouteMap(
   fileList: FileItem[],
   generatePath: string,
-  layoutIdMap: Record<string, string>
-): Promise<Record<string, RouteMeta>> {
-  const routesMap: Record<string, RouteMeta> = {};
+  layoutIdMap: Record<string, string>,
+): Promise<Record<string, VueRoute>> {
+  const routesMap: Record<string, VueRoute> = {};
 
-  const filePaths = fileList.reduce((acc, { files }) => acc.concat(files), []);
+  const filePaths = fileList.reduce((acc, { files }) => acc.concat(files), [] as string[]);
   const routeMetas = await getRouteMetaFromFiles(filePaths);
 
   for (const { dir, basePath, files } of fileList) {
     for (const file of files) {
       const isLayout = isGlobalLayoutFile(file) || isInnerLayoutFile(file, dir);
-      const layoutId = layoutIdMap[dir] || layoutIdMap['global'] || null;
+      const layoutId = layoutIdMap[dir] || layoutIdMap['global'] || DEFAULT_LAYOUT_ID;
       const routePath = isLayout
         ? normalizePath('/' + basePath)
         : filePathToRoutePath(file, dir, basePath);
-      const isIndexFile =
-        (routePath === basePath || routePath === '') && !isLayout;
+      const isIndexFile = (routePath === basePath || routePath === '') && !isLayout;
       const routeId = isIndexFile
         ? layoutId
           ? `${layoutId}-index`
@@ -72,7 +75,7 @@ async function buildRouteMap(
         : routePath.slice(1).replace(/\//g, '-');
       const relativePath = getRelativePath(generatePath, file);
 
-      let route: RouteMeta = {
+      let route: VueRoute = {
         id: isLayout ? layoutId : routeId,
         path: normalizePath('/' + routePath.replace('$', ':')),
       };
@@ -94,7 +97,11 @@ async function buildRouteMap(
   return routesMap;
 }
 
-async function getResolvedRoutes(opts: IResolvedOpts): Promise<string> {
+interface VueResolvedRouteOptions extends ResolvedRouteOptions {
+  vueOptions?: VueOptions;
+}
+
+async function getResolvedRoutes(opts: VueResolvedRouteOptions): Promise<string> {
   const { fileList, generatePath } = opts;
 
   const layoutIdMap = collectLayoutIds(fileList);
@@ -104,16 +111,20 @@ async function getResolvedRoutes(opts: IResolvedOpts): Promise<string> {
 
   return JSON.stringify(Object.values(routesMap), null, 2).replace(
     /"__LAZY__(.*?)__LAZY__"/g,
-    '$1'
+    '$1',
   );
 }
 
-export function resolveVue() {
+export function resolveVue(vueOptions?: VueOptions) {
   return {
     suffix: 'vue',
     isPageFile,
     isGlobalLayoutFile,
     generateTemplate,
-    getResolvedRoutes,
+    getResolvedRoutes: (options: ResolvedRouteOptions) =>
+      getResolvedRoutes({
+        ...options,
+        vueOptions,
+      }),
   };
 }

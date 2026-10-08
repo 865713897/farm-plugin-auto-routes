@@ -65,7 +65,7 @@ export default defineConfig({
 ### 使用
 
 ```javascript
-import { getRoutes } from 'virtual:routes';
+import routes from 'virtual:routes';
 ```
 
 引入 virtual:routes 会导出 routes 对象

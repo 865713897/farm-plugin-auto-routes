@@ -1,23 +1,17 @@
 import { normalizePath } from '../utils/index.js';
-import { RouteMeta } from '../types/index.js';
+import { BaseRoute } from '../types/index.js';
 
-export function simpleLayoutId(input: string, isGlobal: boolean): string {
+export function simpleLayoutId(input: string, isGlobal?: boolean): string {
   const id = `@@${isGlobal ? 'global' : input.split('/').pop()}-layout`;
   return id;
 }
 
-export function filePathToRoutePath(
-  file: string,
-  dir: string,
-  basePath: string
-): string {
-  const relative = normalizePath(
-    file.replace(dir, '').replace(/\.(jsx?|tsx?|vue)$/, '')
-  );
+export function filePathToRoutePath(file: string, dir: string, basePath: string = ''): string {
+  const relative = normalizePath(file.replace(dir, '').replace(/\.(jsx?|tsx?|vue)$/, ''));
   return normalizePath(`/${basePath}/${relative}`).replace(/\/index$/, '');
 }
 
-export function linkParentChildRoutes(routesMap: Record<string, RouteMeta>) {
+export function linkParentChildRoutes(routesMap: Record<string, BaseRoute>) {
   const childRouteIds: string[] = [];
 
   Object.values(routesMap).forEach((route) => {
@@ -37,8 +31,8 @@ export function linkParentChildRoutes(routesMap: Record<string, RouteMeta>) {
 }
 
 export function pruneEmptyLayouts(
-  routesMap: Record<string, RouteMeta>,
-  layoutIdMap: Record<string, string>
+  routesMap: Record<string, BaseRoute>,
+  layoutIdMap: Record<string, string>,
 ) {
   for (const key in layoutIdMap) {
     const layoutId = layoutIdMap[key];

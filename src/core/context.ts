@@ -7,32 +7,47 @@ import { getResolver } from '../resolve/index.js';
 import { getRouteMetaFromFiles } from './routeMeta.js';
 import { toCaseInsensitiveGlob } from '../utils/index.js';
 
-import { DirType, FileItem, ResolverType, Framework } from '../types/index.js';
+import type {
+  FileItem,
+  Framework,
+  ReactOptions,
+  RouteDirectory,
+  RouteResolver,
+  VueOptions,
+} from '../types/index.js';
 
-interface IOpts {
-  dirs: DirType[];
+interface ContextOptions {
+  dirs: RouteDirectory[];
+
   generatePath: string;
+
   framework: Framework;
+
   writePath: string;
+
   writeToDisk?: boolean;
+
+  react?: ReactOptions;
+
+  vue?: VueOptions;
 }
 
 export default class Context {
-  private dirs: DirType[];
+  private dirs: RouteDirectory[];
   private ignore: string[];
   private generatePath: string;
   private writeToDisk?: boolean;
   private writePath: string;
   private fileListCache: FileItem[] = [];
-  private resolver: ResolverType;
+  private resolver: RouteResolver;
 
-  constructor(opts: IOpts) {
-    const { dirs, generatePath, writePath, writeToDisk, framework } = opts;
+  constructor(opts: ContextOptions) {
+    const { dirs, generatePath, writePath, writeToDisk, framework, react, vue } = opts;
     this.dirs = dirs;
     this.generatePath = generatePath;
     this.writePath = writePath;
     this.writeToDisk = writeToDisk;
-    this.resolver = getResolver(framework);
+    this.resolver = getResolver(framework, { react, vue });
     this.ignore = defaultIgnoredNames.reduce(
       (acc, cur) => {
         acc = acc.concat([
@@ -41,7 +56,7 @@ export default class Context {
         ]);
         return acc;
       },
-      ['**/*.d.ts']
+      ['**/*.d.ts'],
     );
   }
 
@@ -81,7 +96,7 @@ export default class Context {
     if (!dirItem) return;
 
     const cacheItem = this.fileListCache.find(
-      (item) => item.dir === dirItem.dir && item.basePath === dirItem.basePath
+      (item) => item.dir === dirItem.dir && item.basePath === dirItem.basePath,
     );
 
     if (cacheItem && !cacheItem.files.includes(file)) {
@@ -132,7 +147,7 @@ export default class Context {
       ({ dir, isGlobal, pattern }) =>
         filename.startsWith(dir) &&
         (!pattern || (pattern instanceof RegExp && pattern.test(filename))) &&
-        (!isGlobal || (isGlobal && isGlobalLayoutFile(filename)))
+        (!isGlobal || (isGlobal && isGlobalLayoutFile(filename))),
     );
     const isPage = isPageFile(filename);
     const isIgnore = this.isIgnoreFile(filename);

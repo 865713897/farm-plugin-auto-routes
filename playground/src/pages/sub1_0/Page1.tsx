@@ -3,3 +3,7 @@
 export default function Page() {
   return <div>/sub1_0/Page1.tsx</div>;
 }
+
+export const loader = () => {
+  console.log(111111)
+}
