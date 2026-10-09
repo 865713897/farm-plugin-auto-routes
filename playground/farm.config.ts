@@ -13,9 +13,9 @@ export default defineConfig({
     ['@farmfe/plugin-react', { runtime: 'automatic' }],
     farmPlugin({
       writeToDisk: true,
-      react: {
-        routeLoading: 'route',
-      },
+      // react: {
+      //   routerApiVersion: 'legacy',
+      // }
     }),
   ],
 });

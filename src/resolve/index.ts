@@ -1,6 +1,6 @@
 import { frameworkMap } from '../constant.js';
-import { resolveReact } from './react.js';
-import { resolveVue } from './vue.js';
+import { resolveReact } from './react/index.js';
+import { resolveVue } from './vue/index.js';
 import type { Framework, ReactOptions, VueOptions } from '../types/index.js';
 
 export interface ResolverOptions {

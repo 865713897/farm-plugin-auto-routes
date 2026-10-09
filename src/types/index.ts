@@ -6,4 +6,4 @@ export { AutoRoutesOptions, ReactOptions, VueOptions } from './options.js';
 
 export { ResolvedRouteOptions, RouteResolver } from './resolver.js';
 
-export { BaseRoute, ReactRoute, VueRoute } from './route.js';
+export { BaseRoute, ReactRoute, RouteMeta, VueRoute } from './route.js';

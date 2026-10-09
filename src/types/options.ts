@@ -1,7 +1,7 @@
 import type { RouteDirectory } from './file.js';
 import type { Framework } from './index.js';
 
-export type RouteLoadingMode = 'legacy' | 'modern';
+export type RouterApiVersion = 'legacy' | 'modern';
 
 export interface ReactOptions {
   /**
@@ -10,7 +10,7 @@ export interface ReactOptions {
    * modern:
    *   React Router route.lazy
    */
-  routerApiVersion: RouteLoadingMode;
+  routerApiVersion: RouterApiVersion;
 }
 
 export interface VueOptions {}
