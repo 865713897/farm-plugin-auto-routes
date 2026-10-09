@@ -28,8 +28,6 @@ async function getResolvedRoutes(opts: ReactResolvedRouteOptions): Promise<strin
 
   const layoutTree = buildLayoutTree(fileList as FileItem[]);
 
-  console.log(layoutTree)
-
   const routesMap = await buildRouteMap(
     fileList as FileItem[],
     generatePath,

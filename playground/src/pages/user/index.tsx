@@ -1,3 +1,8 @@
+/**
+ * @route-id: user_title_123
+ * @route-parent-id: null
+ */
+
 export default function User() {
   return (
     <div>
